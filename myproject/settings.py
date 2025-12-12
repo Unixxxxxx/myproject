@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'myprojectdb',
 ]
 
 MIDDLEWARE = [
@@ -77,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'myproject',
         'USER' : 'myprojectuser',
-        'PASSWORD' : '******',
+        'PASSWORD' : 'Alpha&007',
         'HOST' : 'localhost',
         'PORT' : '',
     }
