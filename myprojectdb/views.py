@@ -1,5 +1,15 @@
-from django.shortcuts import render
-
+from django.shortcuts import render, redirect
+from django.http import HttpResponse 
 
 def index(request):
-    return render(requesti, 'index.html' )
+    return render(request, 'index.html' )
+
+def login_success(request):
+    response = redirect("dashboard")
+    response.set_cookie("logged_in", True, max_age=3600)
+    return response
+
+def dashboard(request):
+    return render(request, "dashboard.html")
+
+
