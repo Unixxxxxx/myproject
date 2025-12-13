@@ -7,13 +7,14 @@ def index(request):
     return render(request, 'index.html' )
 
 def login_success(request):
-    response = redirect("dashboard")
-    response.set_cookie("logged_in", True, max_age=3600)
-    return response
+    # Use server-side session instead of setting a cookie
+    request.session['logged_in'] = True
+    request.session.modified = True
+    return redirect("dashboard")
 
 def dashboard(request):
-    username = request.COOKIES.get('username', 'Guest')
-    last_connection = request.COOKIES.get('last_connection', 'Unknown')
+    username = request.session.get('username', 'Guest')
+    last_connection = request.session.get('last_connection', 'Unknown')
 
     return render(request, 'dashboard.html', {
         'username': username,
@@ -39,20 +40,10 @@ def login(request):
             )
 
             #  SET COOKIE HERE 👇
-            response.set_cookie(
-                'username',
-                username,
-                max_age=3600,
-                httponly=True,
-                secure=True,   # works only with HTTPS
-                samesite='Lax'
-            )
-
-            response.set_cookie(
-                'last_connection',
-                timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-                max_age=3600
-            )
+            # Store auth info server-side in the session instead of cookies
+            request.session['username'] = username
+            request.session['last_connection'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            request.session.modified = True
 
             #  Return response
             return response
@@ -63,3 +54,27 @@ def login(request):
     return render(request, 'login.html', {'form': form})
 
 
+def session_login(request):
+    """Session-based login helper: set session keys instead of cookies."""
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            # If using Django authentication, call authenticate() here and set user id in session.
+            request.session['username'] = username
+            request.session['logged_in'] = True
+            request.session['last_connection'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            request.session.modified = True
+            return redirect('dashboard')
+    else:
+        form = LoginForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def session_logout(request):
+    """Clear session-based authentication."""
+    request.session.pop('username', None)
+    request.session.pop('logged_in', None)
+    request.session.pop('last_connection', None)
+    request.session.flush()
+    return redirect('login')
